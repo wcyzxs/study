@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.wxjs.les.modules.exam.dao.SiterecordDao">
+    
+	<sql id="siterecordColumns">
+		a.id AS "id",
+		a.develop_org AS "developOrg",
+		a.develop_contact AS "developContact",
+		a.develop_phone AS "developPhone",
+		a.construction_org AS "constructionOrg",
+		a.construction_contact AS "constructionContact",
+		a.construction_phone AS "constructionPhone",
+		a.project_name AS "projectName",
+		a.project_address AS "projectAddress",
+		a.site_situation AS "siteSituation",
+		a.site_picture AS "sitePicture",
+		a.site_check_result AS "siteCheckResult",
+		a.checker AS "checker",
+		a.check_date AS "checkDate",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="siterecordJoins">
+	</sql>
+    
+	<select id="get" resultType="Siterecord">
+		SELECT 
+			<include refid="siterecordColumns"/>
+		FROM tsiterecord a
+		<include refid="siterecordJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Tsitecheck">
+		SELECT 
+			<include refid="siterecordColumns"/>
+		FROM tsiterecord a
+		<include refid="siterecordJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<if test="developOrg != null and developOrg != ''">
+			AND a.develop_org like 
+					<if test="dbName == 'oracle'">'%'||#{developOrg}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{developOrg}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{developOrg}, '%')</if>
+		</if>
+		<if test="constructionOrg != null and constructionOrg != ''">
+			AND a.construction_org like 
+					<if test="dbName == 'oracle'">'%'||#{constructionOrg}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{constructionOrg}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{constructionOrg}, '%')</if>
+		</if>
+		<if test="projectName != null and projectName != ''">
+			AND a.project_name like 
+					<if test="dbName == 'oracle'">'%'||#{projectName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectName}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{projectName}, '%')</if>
+		</if>
+		<if test="projectAddress != null and projectAddress != ''">
+			AND a.project_address like 
+					<if test="dbName == 'oracle'">'%'||#{projectAddress}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectAddress}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{projectAddress}, '%')</if>
+		</if>
+		<if test="checker != null and checker != ''">
+			AND a.checker like 
+					<if test="dbName == 'oracle'">'%'||#{checker}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{checker}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{checker}, '%')</if>
+		</if>
+		<if test="beginDate != null and endDate != null">
+			<if test="dbName == 'oracle'">
+				<![CDATA[AND a.check_date >= To_Date('#{beginDate}','yyyy-MM-dd HH24:mi:ss') and a.check_date <= To_Date('#{endDate}','yyyy-MM-dd HH24:mi:ss')]]>
+			</if>
+			<if test="dbName == 'mysql'">
+				<![CDATA[AND a.check_date >= DATE_FORMAT(#{beginDate},'%Y-%m-%d %T') and a.check_date <= DATE_FORMAT(#{endDate},'%Y-%m-%d %T')]]>
+			</if>
+		</if>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Siterecord">
+		SELECT 
+			<include refid="siterecordColumns"/>
+		FROM tsiterecord a
+		<include refid="siterecordJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<insert id="insert">
+		INSERT INTO tsiterecord(
+			develop_org,
+			develop_contact,
+			develop_phone,
+			construction_org,
+			construction_contact,
+			construction_phone,
+			project_name,
+			project_address,
+			site_situation,
+			site_picture,
+			site_check_result,
+			checker,
+			check_date,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{developOrg},
+			#{developContact},
+			#{developPhone},
+			#{constructionOrg},
+			#{constructionContact},
+			#{constructionPhone},
+			#{projectName},
+			#{projectAddress},
+			#{siteSituation},
+			#{sitePicture},
+			#{siteCheckResult},
+			#{checker},
+			#{checkDate},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE tsiterecord SET 	
+			develop_org = #{developOrg},
+			develop_contact = #{developContact},
+			develop_phone = #{developPhone},
+			construction_org = #{constructionOrg},
+			construction_contact = #{constructionContact},
+			construction_phone = #{constructionPhone},
+			project_name = #{projectName},
+			project_address = #{projectAddress},
+			site_situation = #{siteSituation},
+			site_picture = #{sitePicture},
+			site_check_result = #{siteCheckResult},
+			checker = #{checker},
+			check_date = #{checkDate},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE tsiterecord SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.wxjs.les.modules.material.dao.MaterialDao">
+    
+	<sql id="materialColumns">
+		a.id AS "id",
+		a.get_date AS "getDate",
+		a.material_type AS "materialType",
+		a.get_location AS "getLocation",
+		
+	 
+		a.getter_sig AS "getterSig.id",
+		s1.title AS "getterSig.title",
+		s1.signature AS "getterSig.signature",
+	    s2.title AS "partySig.title",
+		s2.signature AS "partySig.signature",
+		a.party_sig AS "partySig.id",
+
+		
+		a.material_path AS "materialPath",
+		a.material_comment AS "materialComment",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="materialJoins">  
+		LEFT JOIN tsignature s1 on s1.id=a.getter_sig
+	    LEFT JOIN tsignature s2 on s2.id=a.party_sig
+	</sql>
+    
+	<select id="get" resultType="Material">
+		SELECT 
+			<include refid="materialColumns"/>
+		FROM tmaterial a
+		<include refid="materialJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Material">
+		SELECT 
+			<include refid="materialColumns"/>
+		FROM tmaterial a
+		<include refid="materialJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<if test="materialType != null and materialType != ''">
+			AND a.material_type like 
+					<if test="dbName == 'oracle'">'%'||#{materialType}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{materialType}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{materialType}, '%')</if>
+		</if>
+		<if test="getLocation != null and getLocation != ''">
+			AND a.get_location like 
+					<if test="dbName == 'oracle'">'%'||#{getLocation}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{getLocation}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{getLocation}, '%')</if>
+		</if>
+		<if test="beginDate != null and endDate != null">
+			<if test="dbName == 'oracle'">
+				<![CDATA[AND a.get_date >= To_Date('#{beginDate}','yyyy-MM-dd HH24:mi:ss') and a.get_date <= To_Date('#{endDate}','yyyy-MM-dd HH24:mi:ss')]]>
+			</if>
+			<if test="dbName == 'mysql'">
+				<![CDATA[AND a.get_date >= DATE_FORMAT(#{beginDate},'%Y-%m-%d %T') and a.get_date <= DATE_FORMAT(#{endDate},'%Y-%m-%d %T')]]>
+			</if>
+		</if>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Material">
+		SELECT 
+			<include refid="materialColumns"/>
+		FROM tmaterial a
+		<include refid="materialJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO tmaterial(
+			get_date,
+			material_type,
+			get_location,
+			party_sig,
+			getter_sig,
+			material_path,
+			material_comment,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{getDate},
+			#{materialType},
+			#{getLocation},
+			#{partySig.id},
+			#{getterSig.id},
+			#{materialPath},
+			#{materialComment},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE tmaterial SET 	
+			get_date = #{getDate},
+			material_type = #{materialType},
+			get_location = #{getLocation},
+			material_path = #{materialPath},
+			material_comment = #{materialComment},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE tmaterial SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
